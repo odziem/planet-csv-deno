@@ -38,7 +38,7 @@ export async function loadPlanetData() {
 
 if (import.meta.main) {
   const newEarths = await loadPlanetData();
-  console.log(`${Object.keys(newEarths).length} Earth-like planets found!`)
+  console.log(`${Object.keys(newEarths).length} habitable planets found!`)
   for (const planet of newEarths) {
     console.log(planet);
   }
