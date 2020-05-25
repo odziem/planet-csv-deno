@@ -2,6 +2,12 @@ import { join } from "https://deno.land/std/path/mod.ts";
 import { parse } from "https://deno.land/std/encoding/csv.ts";
 import { BufReader } from "https://deno.land/std/io/bufio.ts";
 
+import { pick } from "https://deno.land/x/lodash@4.17.15-es/lodash.js";
+
+interface Planet {
+  [ key : string ] : string
+};
+
 export async function loadPlanetData() {
   const path = join(".", "kepler_exoplanets_nasa.csv");
 
@@ -16,30 +22,33 @@ export async function loadPlanetData() {
   // Close file resource id (rid) to avoid leaking resources.
   Deno.close(file.rid);
 
-  const matches = result.filter((item : any) => {
-    return item["koi_disposition"] === "CONFIRMED" 
-      && item["koi_prad"] > 0.5 && item["koi_prad"] < 2.5
-      && item["koi_steff"] > 5200 && item["koi_steff"] < 6200
-      && item["koi_srad"] > 0.99 && item["koi_srad"] < 1.01
-      && item["koi_smass"] > 0.99 && item["koi_smass"] < 1.01;
+  const planets = (result as Array<Planet>).filter((planet) => {
+    const planetaryRadius = Number(planet["koi_prad"]);
+    const stellarRadius = Number(planet["koi_srad"]);
+    const stellarMass = Number(planet["koi_smass"]);
+
+    return planet["koi_disposition"] === "CONFIRMED" 
+      && planetaryRadius > 0.5 && planetaryRadius < 1.5
+      && stellarRadius > 0.99 && stellarRadius < 1.01
+      && stellarMass > 0.78 && stellarMass < 1.04;
   });
-  
-  return matches.map((item : any) => {
-    return {
-      keplerName: item["kepler_name"],
-      planetaryRadius: item["koi_prad"],
-      planetCount: item["koi_count"],
-      stellarMass: item["koi_smass"],
-      stellarRadius: item["koi_srad"],
-      stellarTemperature: item["koi_steff"],
-    };
-  });
+
+  return planets.map((planet) => {
+    return pick(planet, [
+      "kepler_name",
+      "koi_prad",
+      "koi_smass",
+      "koi_srad",
+      "koi_count",
+      "koi_steff"
+    ]);
+  })
 }
 
 if (import.meta.main) {
   const newEarths = await loadPlanetData();
-  console.log(`${Object.keys(newEarths).length} habitable planets found!`)
   for (const planet of newEarths) {
     console.log(planet);
   }
+  console.log(`${newEarths.length} habitable planets found!`)
 }
