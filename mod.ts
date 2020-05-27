@@ -8,7 +8,7 @@ interface Planet {
   [ key : string ] : string
 };
 
-export async function loadPlanetData() {
+async function loadPlanetData() {
   const path = join(".", "kepler_exoplanets_nasa.csv");
 
   const file = await Deno.open(path);
@@ -45,10 +45,8 @@ export async function loadPlanetData() {
   })
 }
 
-if (import.meta.main) {
-  const newEarths = await loadPlanetData();
-  for (const planet of newEarths) {
-    console.log(planet);
-  }
-  console.log(`${newEarths.length} habitable planets found!`)
+const newEarths = await loadPlanetData();
+for (const planet of newEarths) {
+  console.log(planet);
 }
+console.log(`${newEarths.length} habitable planets found!`)
